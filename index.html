@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>手机回收平台</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f8f9fa; }
+    .card { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .card h3 { margin-top: 0; }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; font-weight: bold; margin-bottom: 5px; }
+    input, textarea, select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+    button { padding: 10px 20px; font-size: 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    .order-id { background: #e0ffe0; padding: 10px; margin-top: 20px; border-left: 5px solid #28a745; font-size: 18px; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <h1>手机回收平台</h1>
+
+  <!-- 三个步骤卡片展示 -->
+  <div class="card">
+    <h3>第一步：留下信息获取回收价格</h3>
+    <p>填写以下表单信息以便我们评估手机价值。</p>
+  </div>
+  <div class="card">
+    <h3>第二步：人工处理</h3>
+    <p>我们将联系您，沟通、估价并确认合作意向。</p>
+  </div>
+  <div class="card">
+    <h3>第三步：安排取件和打款</h3>
+    <p>物流运费、验机费、保险费从回收款中扣除，验机后我们将打款。</p>
+  </div>
+
+  <!-- 提交表单 -->
+  <div class="card">
+    <h3>提交手机回收信息</h3>
+    <form id="recycleForm">
+      <div class="form-group">
+        <label for="email">邮箱（必填）</label>
+        <input type="email" id="email" name="email" required />
+      </div>
+
+      <div class="form-group">
+        <label for="description">手机描述 + 联系方式（可选，最多10000字）</label>
+        <textarea id="description" name="description" maxlength="10000" rows="10" placeholder="如：型号、成色、故障、期望价格、电话、地址、打款方式等信息..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="photo">上传照片（最多5张）</label>
+        <input type="file" id="photo" name="photo" accept="image/*" multiple />
+      </div>
+
+      <div class="form-group">
+        <label>或填写图片链接地址：</label>
+        <input type="text" name="imageLink1" placeholder="图片链接1 (可选)" />
+        <input type="text" name="imageLink2" placeholder="图片链接2 (可选)" />
+        <input type="text" name="imageLink3" placeholder="图片链接3 (可选)" />
+      </div>
+
+      <div class="form-group">
+        <label for="mode">用户期望的处理方式（必选）</label>
+        <select id="mode" name="mode" required>
+          <option value="">请选择...</option>
+          <option value="直接回收">直接回收</option>
+          <option value="询价后决定">询价后决定</option>
+        </select>
+      </div>
+
+      <button type="submit">提交信息</button>
+    </form>
+
+    <div id="result" class="order-id" style="display:none;"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById("recycleForm");
+    const resultDiv = document.getElementById("result");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+
+      // 限制上传图片最多5张
+      const files = form.photo.files;
+      if (files.length > 5) {
+        alert("最多上传5张图片！");
+        return;
+      }
+
+      // 可选择是否上传文件，下面假设 Worker 会处理上传和KV记录
+      const submitData = new FormData();
+      for (let [key, value] of Object.entries(data)) {
+        submitData.append(key, value);
+      }
+      for (let i = 0; i < files.length; i++) {
+        submitData.append("images", files[i]);
+      }
+
+      try {
+        const res = await fetch("https://cycle.hanfu2023.workers.dev/api/submit", {
+          method: "POST",
+          body: submitData
+        });
+
+        const result = await res.json();
+        if (result && result.orderId) {
+          resultDiv.innerText = `✅ 提交成功！您的订单编号为：${result.orderId}`;
+          resultDiv.style.display = "block";
+          form.reset();
+        } else {
+          alert("提交失败，请稍后重试");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("网络错误，请稍后再试。");
+      }
+    });
+  </script>
+</body>
+</html>
