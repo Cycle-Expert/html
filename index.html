@@ -5,38 +5,224 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>手机回收平台</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f8f9fa; }
-    .card { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-    .card h3 { margin-top: 0; }
-    .form-group { margin-bottom: 15px; }
-    label { display: block; font-weight: bold; margin-bottom: 5px; }
-    input, textarea, select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
-    button { padding: 10px 20px; font-size: 18px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
-    button:hover { background: #0056b3; }
-    .order-id { background: #e0ffe0; padding: 10px; margin-top: 20px; border-left: 5px solid #28a745; font-size: 18px; font-weight: bold; }
-    .mode-card { margin-top: 15px; background: #f1f1f1; padding: 15px; border-radius: 8px; border: 1px solid #ccc; display: none; }
-    .mode-option { display: inline-block; margin-right: 15px; padding: 15px; background-color: #007bff; color: white; cursor: pointer; border-radius: 50%; text-align: center; font-size: 14px; }
-    .mode-option.selected { background-color: #28a745; } /* 已选中时的样式 */
-    .mode-option:hover { background-color: #0056b3; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f8f9fa;
+    }
+    
+    h1 {
+      text-align: center;
+      color: #007bff;
+      font-size: 24px;
+    }
+
+    /* 卡片容器：横向排列并带有上下浮动的动画 */
+    .card-container {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 40px;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      border-left: 6px solid #007bff;
+      width: 30%;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: float-up-down 0.8s ease-in-out forwards;
+    }
+
+    /* 新增加的大卡片样式 */
+    .big-card {
+      background: #ffcc00; /* 显眼的黄色背景 */
+      padding: 40px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      border-left: 6px solid #ff9900;
+      width: 100%;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: float-up-down 0.8s ease-in-out forwards;
+    }
+    
+    /* 每个卡片的延迟动画 */
+    .card:nth-child(1) { animation-delay: 0.2s; }
+    .card:nth-child(2) { animation-delay: 0.4s; }
+    .card:nth-child(3) { animation-delay: 0.6s; }
+
+    @keyframes float-up-down {
+      0% {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      50% {
+        opacity: 1;
+        transform: translateY(-15px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .card h3 {
+      margin-top: 0;
+      font-size: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    .order-id {
+      background: #e0ffe0;
+      padding: 10px;
+      margin-top: 20px;
+      border-left: 5px solid #28a745;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    /* 响应式设计：手机、平板和桌面适配 */
+    /* 默认情况下，卡片和表单元素适应不同屏幕 */
+    @media (max-width: 1200px) {
+      h1 {
+        font-size: 22px;
+      }
+
+      .card-container {
+        flex-direction: row;
+        justify-content: space-around;
+      }
+
+      .card {
+        width: 30%;
+      }
+
+      .big-card {
+        width: 100%;
+        margin-top: 30px;
+      }
+    }
+
+    /* 适配平板屏幕，宽度小于 768px */
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 20px;
+      }
+
+      .card-container {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .card {
+        width: 80%;
+        margin-bottom: 20px;
+      }
+
+      button {
+        width: 100%;
+        padding: 12px;
+      }
+
+      .form-group input, .form-group textarea {
+        padding: 10px;
+      }
+    }
+
+    /* 适配手机屏幕，宽度小于 480px */
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 18px;
+      }
+
+      .card {
+        width: 90%;
+        margin-bottom: 15px;
+      }
+
+      .big-card {
+        width: 100%;
+        padding: 30px;
+      }
+
+      .form-group input, .form-group textarea {
+        padding: 12px;
+      }
+
+      button {
+        padding: 14px;
+        font-size: 18px;
+      }
+    }
   </style>
 </head>
 <body>
 
   <h1>手机回收平台</h1>
 
+
+ <!-- 新增加的大卡片 -->
+  <div class="big-card">
+    <h3>📸 这是一个大卡片框！</h3>
+    <p>你可以在这里放置图片。</p>
+  </div>
+
   <!-- 三个步骤卡片展示 -->
-  <div class="card">
-    <h3>第一步：留下信息获取回收价格</h3>
-    <p>填写以下表单信息以便我们评估手机价值。</p>
+  <div class="card-container">
+    <div class="card">
+      <h3>📩 第一步：留下信息获取回收价格</h3>
+      <p>填写以下表单信息以便我们评估手机价值。</p>
+    </div>
+    <div class="card">
+      <h3>🤝 第二步：人工处理</h3>
+      <p>我们将联系您，沟通、估价并确认合作意向。</p>
+    </div>
+    <div class="card">
+      <h3>💰 第三步：安排取件和打款</h3>
+      <p>物流运费、验机费、保险费从回收款中扣除，验机后我们将打款。</p>
+    </div>
   </div>
-  <div class="card">
-    <h3>第二步：人工处理</h3>
-    <p>我们将联系您，沟通、估价并确认合作意向。</p>
-  </div>
-  <div class="card">
-    <h3>第三步：安排取件和打款</h3>
-    <p>物流运费、验机费、保险费从回收款中扣除，验机后我们将打款。</p>
-  </div>
+
+ 
 
   <!-- 提交表单 -->
   <div class="card">
@@ -53,26 +239,10 @@
       </div>
 
       <div class="form-group">
-        <label for="photo">上传照片（最多1张，可选，15MB以内）</label>
-        <input type="file" id="photo" name="photo" accept="image/*" />
-        <div id="image-link" style="margin-top: 10px;"></div> <!-- 图片链接展示位置 -->
-      </div>
-
-      <div class="form-group">
         <label>或填写图片链接地址：</label>
-        <input type="text" name="imageLink1" placeholder="图片链接1 (可选)" readonly />
-      </div>
-
-      <!-- 选择处理方式按钮展示 -->
-      <div class="form-group">
-        <label>选择处理方式</label>
-        <div class="mode-option" id="direct-recycle-btn">直接回收</div>
-      </div>
-
-      <!-- 直接回收详细信息展示 -->
-      <div class="mode-card" id="direct-recycle-info">
-        <h4>直接回收</h4>
-        <p>我们会为您提供即时回收价格，并安排回收。</p>
+        <input type="text" name="imageLink1" placeholder="图片链接1 (可选)" />
+        <input type="text" name="imageLink2" placeholder="图片链接2 (可选)" />
+        <input type="text" name="imageLink3" placeholder="图片链接3 (可选)" />
       </div>
 
       <button type="submit">提交信息</button>
@@ -84,53 +254,6 @@
   <script>
     const form = document.getElementById("recycleForm");
     const resultDiv = document.getElementById("result");
-    const directRecycleBtn = document.getElementById("direct-recycle-btn");
-    const directRecycleInfo = document.getElementById("direct-recycle-info");
-    const photoInput = document.getElementById("photo");
-    const imageLinkDiv = document.getElementById("image-link");
-
-    // 直接回收按钮点击事件
-    directRecycleBtn.addEventListener("click", () => {
-      // 切换按钮的选中状态
-      directRecycleBtn.classList.toggle("selected");
-
-      // 展示或隐藏“直接回收”模块
-      if (directRecycleBtn.classList.contains("selected")) {
-        directRecycleInfo.style.display = "block";
-      } else {
-        directRecycleInfo.style.display = "none";
-      }
-    });
-
-    // 处理图片上传并显示链接
-    photoInput.addEventListener("change", async () => {
-      const file = photoInput.files[0];
-      if (file && file.size <= 15 * 1024 * 1024) {  // 确保文件大小在15MB以内
-        const formData = new FormData();
-        formData.append("image", file);
-        
-        try {
-          const res = await fetch("https://cycle.hanfu2023.workers.dev/api/upload", {
-            method: "POST",
-            body: formData,
-          });
-
-          const result = await res.json();
-          if (result && result.imageUrl) {
-            // 显示图片访问链接
-            document.querySelector("input[name='imageLink1']").value = result.imageUrl;
-            imageLinkDiv.innerHTML = `<p>上传成功！图片访问链接：<a href="${result.imageUrl}" target="_blank">${result.imageUrl}</a></p>`;
-          } else {
-            alert("图片上传失败，请稍后再试。");
-          }
-        } catch (err) {
-          console.error(err);
-          alert("上传过程中发生错误，请稍后再试。");
-        }
-      } else {
-        alert("图片必须小于15MB！");
-      }
-    });
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -138,7 +261,6 @@
       const formData = new FormData(form);
       const data = Object.fromEntries(formData.entries());
 
-      // 可选择是否上传文件，下面假设 Worker 会处理上传和KV记录
       const submitData = new FormData();
       for (let [key, value] of Object.entries(data)) {
         submitData.append(key, value);
@@ -155,8 +277,6 @@
           resultDiv.innerText = `✅ 提交成功！您的订单编号为：${result.orderId}`;
           resultDiv.style.display = "block";
           form.reset();
-          directRecycleInfo.style.display = "none";  // 重置时隐藏“直接回收”模块
-          directRecycleBtn.classList.remove("selected"); // 重置按钮的选中状态
         } else {
           alert("提交失败，请稍后重试");
         }
