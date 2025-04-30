@@ -11,9 +11,13 @@
     .form-group { margin-bottom: 15px; }
     label { display: block; font-weight: bold; margin-bottom: 5px; }
     input, textarea, select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
-    button { padding: 10px 20px; font-size: 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    button { padding: 10px 20px; font-size: 18px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
     button:hover { background: #0056b3; }
     .order-id { background: #e0ffe0; padding: 10px; margin-top: 20px; border-left: 5px solid #28a745; font-size: 18px; font-weight: bold; }
+    .mode-card { margin-top: 15px; background: #f1f1f1; padding: 15px; border-radius: 8px; border: 1px solid #ccc; display: none; }
+    .mode-option { display: inline-block; margin-right: 15px; padding: 15px; background-color: #007bff; color: white; cursor: pointer; border-radius: 50%; text-align: center; font-size: 14px; }
+    .mode-option.selected { background-color: #28a745; } /* 已选中时的样式 */
+    .mode-option:hover { background-color: #0056b3; }
   </style>
 </head>
 <body>
@@ -49,24 +53,26 @@
       </div>
 
       <div class="form-group">
-        <label for="photo">上传照片（最多5张）</label>
-        <input type="file" id="photo" name="photo" accept="image/*" multiple />
+        <label for="photo">上传照片（最多1张，可选，15MB以内）</label>
+        <input type="file" id="photo" name="photo" accept="image/*" />
+        <div id="image-link" style="margin-top: 10px;"></div> <!-- 图片链接展示位置 -->
       </div>
 
       <div class="form-group">
         <label>或填写图片链接地址：</label>
-        <input type="text" name="imageLink1" placeholder="图片链接1 (可选)" />
-        <input type="text" name="imageLink2" placeholder="图片链接2 (可选)" />
-        <input type="text" name="imageLink3" placeholder="图片链接3 (可选)" />
+        <input type="text" name="imageLink1" placeholder="图片链接1 (可选)" readonly />
       </div>
 
+      <!-- 选择处理方式按钮展示 -->
       <div class="form-group">
-        <label for="mode">用户期望的处理方式（必选）</label>
-        <select id="mode" name="mode" required>
-          <option value="">请选择...</option>
-          <option value="直接回收">直接回收</option>
-          <option value="询价后决定">询价后决定</option>
-        </select>
+        <label>选择处理方式</label>
+        <div class="mode-option" id="direct-recycle-btn">直接回收</div>
+      </div>
+
+      <!-- 直接回收详细信息展示 -->
+      <div class="mode-card" id="direct-recycle-info">
+        <h4>直接回收</h4>
+        <p>我们会为您提供即时回收价格，并安排回收。</p>
       </div>
 
       <button type="submit">提交信息</button>
@@ -78,6 +84,53 @@
   <script>
     const form = document.getElementById("recycleForm");
     const resultDiv = document.getElementById("result");
+    const directRecycleBtn = document.getElementById("direct-recycle-btn");
+    const directRecycleInfo = document.getElementById("direct-recycle-info");
+    const photoInput = document.getElementById("photo");
+    const imageLinkDiv = document.getElementById("image-link");
+
+    // 直接回收按钮点击事件
+    directRecycleBtn.addEventListener("click", () => {
+      // 切换按钮的选中状态
+      directRecycleBtn.classList.toggle("selected");
+
+      // 展示或隐藏“直接回收”模块
+      if (directRecycleBtn.classList.contains("selected")) {
+        directRecycleInfo.style.display = "block";
+      } else {
+        directRecycleInfo.style.display = "none";
+      }
+    });
+
+    // 处理图片上传并显示链接
+    photoInput.addEventListener("change", async () => {
+      const file = photoInput.files[0];
+      if (file && file.size <= 15 * 1024 * 1024) {  // 确保文件大小在15MB以内
+        const formData = new FormData();
+        formData.append("image", file);
+        
+        try {
+          const res = await fetch("https://cycle.hanfu2023.workers.dev/api/upload", {
+            method: "POST",
+            body: formData,
+          });
+
+          const result = await res.json();
+          if (result && result.imageUrl) {
+            // 显示图片访问链接
+            document.querySelector("input[name='imageLink1']").value = result.imageUrl;
+            imageLinkDiv.innerHTML = `<p>上传成功！图片访问链接：<a href="${result.imageUrl}" target="_blank">${result.imageUrl}</a></p>`;
+          } else {
+            alert("图片上传失败，请稍后再试。");
+          }
+        } catch (err) {
+          console.error(err);
+          alert("上传过程中发生错误，请稍后再试。");
+        }
+      } else {
+        alert("图片必须小于15MB！");
+      }
+    });
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -85,20 +138,10 @@
       const formData = new FormData(form);
       const data = Object.fromEntries(formData.entries());
 
-      // 限制上传图片最多5张
-      const files = form.photo.files;
-      if (files.length > 5) {
-        alert("最多上传5张图片！");
-        return;
-      }
-
       // 可选择是否上传文件，下面假设 Worker 会处理上传和KV记录
       const submitData = new FormData();
       for (let [key, value] of Object.entries(data)) {
         submitData.append(key, value);
-      }
-      for (let i = 0; i < files.length; i++) {
-        submitData.append("images", files[i]);
       }
 
       try {
@@ -112,6 +155,8 @@
           resultDiv.innerText = `✅ 提交成功！您的订单编号为：${result.orderId}`;
           resultDiv.style.display = "block";
           form.reset();
+          directRecycleInfo.style.display = "none";  // 重置时隐藏“直接回收”模块
+          directRecycleBtn.classList.remove("selected"); // 重置按钮的选中状态
         } else {
           alert("提交失败，请稍后重试");
         }
